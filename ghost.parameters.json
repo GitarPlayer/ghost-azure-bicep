@@ -1,0 +1,105 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "autoScaleMin": {
+      "value": "3"
+    },
+    "autoScaleMax": {
+      "value": "3"
+    },
+    "autoScaleDefault": {
+      "value": "3"
+    },
+    "autoScaleCPUTreshold": {
+      "value": 70
+    },
+    "scaleActionIncrease": {
+      "value": "3"
+    },
+    "logAnalyticsWorkspaceSku": {
+      "value": "PerGB2018"
+    },
+    "devGhostContainerTag": {
+      "value": "latest"
+    },
+    "stageGhostContainerTag": {
+      "value": "stage"
+    },
+    "prodGhostContainerTag": {
+      "value": "prod"
+    },
+    "devDeploymentConfiguration": {
+      "value": "Web app dev"
+    },
+    "devPkgURL": {
+      "value": "https://github.com/GitarPlayer/azure-function-ghost/releases/download/0.0.9/app.zip"
+    },
+    "stagePkgURL": {
+      "value": "https://github.com/GitarPlayer/azure-function-ghost/releases/download/0.0.9/app.zip"
+    },
+    "prodPkgURL": {
+      "value": "https://github.com/GitarPlayer/azure-function-ghost/releases/download/0.0.9/app.zip"
+    },
+    "storageAccountSku": {
+      "value": "Standard_RAGRS"
+    },
+    "devStorageAccountSku": {
+      "value": "Standard_LRS"
+    },
+    "applicationNamePrefix": {
+      "value": "ghost"
+    },
+    "appServicePlanSku": {
+      "value": "P3v2"
+    },
+    "devAppServicePlanSku": {
+      "value": "B1"
+    },
+    "devLogAnalyticsWorkspaceSku": {
+      "value": "PerGB2018"
+    },
+    "mySQLServerSku": {
+      "value": "Standard_D2ds_v4"
+    },
+    "devMySQLServerSku": {
+      "value": "Standard_D2ds_v4"
+    },
+    "geoRedundantBackup": {
+      "value": "Enabled"
+    },
+    "devGeoRedundantBackup": {
+      "value": "Disabled"
+    },
+    "highAvailabilityMode": {
+      "value": "ZoneRedundant"
+    },
+    "devHighAvailabilityMode": {
+      "value": "Disabled"
+    },
+    "ghostContainerName": {
+      "value": "gitarplayer/ghost-az-ai"
+    },
+    "containerRegistryUrl": {
+      "value": "https://index.docker.io/v1"
+    },
+    "stageDeploymentConfiguration": {
+      "value": "Web app with Azure Front Door"
+    },
+    "prodDeploymentConfiguration": {
+      "value": "Web app with Azure Front Door"
+    },
+    "devRetentionInDays": {
+      "value": 30
+    },
+    "retentionInDays": {
+      "value": 90
+    },
+    "ghostApiVersion": {
+      "value": "v4.0"
+    },
+    "devGhostApiVersion": {
+      "value": "v5.0"
+    }
+  }
+}
