@@ -148,3 +148,5 @@ Yearly: 361d 14h 17m 4s
 ## Alternative Architectures for lower RTO and RPO
 If an RPO of 1h and a RTO of 1 day is not acceptible there are two other alternative architectures that could be implemented. As outlined by Microsoft themself: https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/app-service-web-app/multi-region
 
+![image](https://user-images.githubusercontent.com/51920729/183283087-1cda456e-79ba-4abf-b0d7-d9df6491ab20.png)
+
