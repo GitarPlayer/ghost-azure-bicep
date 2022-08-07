@@ -150,3 +150,24 @@ If an RPO of 1h and a RTO of 1 day is not acceptible there are two other alterna
 
 ![image](https://user-images.githubusercontent.com/51920729/183283087-1cda456e-79ba-4abf-b0d7-d9df6491ab20.png)
 
+They outline  three different scenarios:
+1. Active/Passive with hot standby
+2. Active/Passive with cold standby
+3. Active/Active
+
+Scenario 3 is hard to implement because the only way to do a multi region deployment is by Geo-replication of the SQL Database with read replicas. So only one region can be fully active since the other will be just a read only replica. The ghost web application would have to be rewritten to do read request to the read only endpoint and writes to the read write endpoint. This is out of scope for this PoC.
+
+But for App Service Plan you pay for the VMs whether apps are running on it or not. Furthermore the MySQL read replica must be running too to be in sync. So in the end it makes more sense to use a hot standby since you will pay the same for a cold one. In our architecture this would mean simply deploying the App Service Plan, App Service, Log Analytics Workspace and the Azure Function in two regions. Plus additionally confiugre a read replica MySQL server in the paired region. The storage account must be setup to GRS/RA-GRS (RA-GRS offers the benefit that in a region failure the application can read immediately without the failover). Additionally the front door configuration must add a second pool and a failover must be configured. Then in case of a region failure the read replica gets promoted to be the read/write instance (either manually or with auto-failover), the storage account failover is triggered (manually) and FrontDoor routes traffic to the paired region App Service (since the failed region will not pass the HTTP healthchecks anymore).
+
+The RTO and RPO of this solution would be:
+RTO: < 1h 
+RPO: < 15min
+
+The bottleneck in this architecture is the storage account failover as the MySQL RTO is - Minutes* and its RPO < 5 Minutes. Furthermore this architecture would allow the failure of up to two availability zones since then we could have 2 read replicas of the MySql server in the active region.
+
+This solution comes not only with more costs but also the complexity increases quite a bit too (failover groups, configuring auto-failover because MySQL Flexible Server HA mode fails without additional configuration). The resources deployed in both regions need to be kept in sync manually with IaC ideally (except for the MySQL database.)
+
+To optimize security the databases could be exposed with private endpoints and Virtual Network Peering between the active and passive region could be established. This is also outlined here: 
+
+https://docs.microsoft.com/en-us/azure/architecture/example-scenario/sql-failover/app-service-private-sql-multi-region
+
