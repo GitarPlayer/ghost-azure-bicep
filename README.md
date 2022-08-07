@@ -138,12 +138,12 @@ The table below lists the availability of each service and the composite availab
 | Azure DNS | 100% |
 | Composite SLA | 0.9986007098% |
 
-The composite SLA in days, weeks, etc:
-Daily: 23h 45m 37s
-Weekly: 6d 22h 19m 20s
-Monthly: 30d 3h 11m 25s
-Quarterly: 90d 9h 34m 16s
-Yearly: 361d 14h 17m 4s
+The composite SLA in days, weeks, etc:  
+Daily: 23h 45m 37s  
+Weekly: 6d 22h 19m 20s  
+Monthly: 30d 3h 11m 25s  
+Quarterly: 90d 9h 34m 16s  
+Yearly: 361d 14h 17m 4s  
 
 ## Alternative Architectures for lower RTO and RPO
 If an RPO of 1h and a RTO of 1 day is not acceptible there are two other alternative architectures that could be implemented. As outlined by Microsoft themself: https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/app-service-web-app/multi-region
@@ -159,8 +159,8 @@ Scenario 3 is hard to implement because the only way to do a multi region deploy
 
 But for App Service Plan you pay for the VMs whether apps are running on it or not. Furthermore the MySQL read replica must be running too to be in sync. So in the end it makes more sense to use a hot standby since you will pay the same for a cold one. In our architecture this would mean simply deploying the App Service Plan, App Service, Log Analytics Workspace and the Azure Function in two regions. Plus additionally confiugre a read replica MySQL server in the paired region. The storage account must be setup to GRS/RA-GRS (RA-GRS offers the benefit that in a region failure the application can read immediately without the failover). Additionally the front door configuration must add a second pool and a failover must be configured. Then in case of a region failure the read replica gets promoted to be the read/write instance (either manually or with auto-failover), the storage account failover is triggered (manually) and FrontDoor routes traffic to the paired region App Service (since the failed region will not pass the HTTP healthchecks anymore).
 
-The RTO and RPO of this solution would be:
-RTO: < 1h 
+The RTO and RPO of this solution would be:  
+RTO: < 1h  
 RPO: < 15min
 
 The bottleneck in this architecture is the storage account failover as the MySQL RTO is - Minutes* and its RPO < 5 Minutes. Furthermore this architecture would allow the failure of up to two availability zones since then we could have 2 read replicas of the MySql server in the active region.
@@ -171,3 +171,5 @@ To optimize security the databases could be exposed with private endpoints and V
 
 https://docs.microsoft.com/en-us/azure/architecture/example-scenario/sql-failover/app-service-private-sql-multi-region
 
+This image visualizes it quite well:
+![image](https://user-images.githubusercontent.com/51920729/183284452-06a70bf0-3444-45a7-a0af-7bfe91fe9851.png)
