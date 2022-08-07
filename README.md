@@ -37,7 +37,7 @@ The orange arrows show the logs of the various services that are being sent to t
 The green arrows show CI/CD flows.
 The black arrows show application flows.
 
-<img src="./hld.svg">
+<img src="./drawio/hld.svg">
 
 The application runs on Azure App Service and is deployed from a public Container image stored on DockerHub. State is stored in a MySQL Flexible server and in a Azure File Share that is mounted into the container. The FR2 is implemented with an Azure App Function that runs in the same App Service Plan (to reduce complexity and to save costs). The Azure App Function and the Ghost Azure web app are configured for AppInsights for Observability reasons . The Azure App Function requires Blob storage to store the keys to trigger the function (authentication & authorization). Azure Key Vault for now stores only the MySQL root password and the Ghost Azure web app fetches the password from the Vault. Ideally as a day two operation the ghost admin api key should also be stored there and the App function should be configured to reach Azure Key Vault (not part of this PoC). Every resource sends data to the Log Analytic Workspace for monitoring and logging purposes . The web application is only reachable via the Azure FrontDoor URL as an additional layer of protection. This offers DDos / Bot protection and also other common threats (SQL injections for example). Microsoft Sentinel is configured as a SOC for the security engineers of the company.
 
@@ -61,7 +61,7 @@ The application runs on Azure App Service and is deployed from a public Containe
 | NF7  | Through the use the WAF of Azure Front Door the security engineer gain insight into the traffic of the web application. The Azure Log Analytics is configured with Microsoft Sentinel. Since all the logs are in Azure Log Analytics it is ideal for SOC operation. |
 
 ### Improvements
-1. The code could be extended for MySQL read replicas because that would enable Active/Active or Active/Passive disaster recovery. Also this would enabling scaling out currently we only scale up. Furthermore with read replicas the application could handle the loss of up to two zone-level failures.
+1. The code could be extended for MySQL read replicas because that would enable Active/Passive disaster recovery. Unfortunately scaling out horizontally is not possible without further engineering (because the ghost application natively does not support sending read request to a read-only MySQL instance), so something like ProxySQL or some routing rules with Azure Front Door are needed.. Furthermore with read replicas the application could handle the loss of up to two zone-level failures.
 2. The MySQL database should be reached with a private endpoint and a Vnet for optimal security (increases complexity quite a bit though).
 3. A private Azure Container registry would probably be used instead of DockerHub. 
 
@@ -72,9 +72,9 @@ https://github.com/GitarPlayer/docker-ghost-ai
 The GitHub repo for the Azure Function that deletes all posts can be found here:
 https://github.com/GitarPlayer/azure-function-ghost
 
-The branching strategy for the web app docker image is as described in the diagram below. Every tagged commit on master will be pushed to DockerHub with the semantic tag and the latest tag.  
+The branching strategy for the web app docker image is as described in the diagram below. *Every tagged commit on master will be pushed to DockerHub with the semantic tag and the latest tag.*  
 
-<img src="./cicd.svg">
+<img src="./drawio/cicd.svg">
 
 The GitHub Action for the Azure Function uses a different workflow. Every semantic versioning tagged commit ([0-9].[0-9].[0-9] is the pattern) triggers the workflow. The workflow does the following:
 1. build the the node.js app
@@ -99,7 +99,7 @@ I choose public repositories and a public Docker repo because I did not want the
 ## The environments 
 Prod and stage do not differ and look exactly like the HLD described above but dev does differ from the others. There are two differences:
 1. Dev is directly exposed directly with Azure App Service and not behind Azure Front Door. The illustration below shows this more clearly.
-<img src="./dev_hld.drawio.svg">
+<img src="./drawio/dev_hld.drawio.svg">
 
 1. Dev is a more lightweight version with less availability and throughput. 
 ### Improvements
@@ -137,14 +137,14 @@ The table below lists the availability of each service and the composite availab
 | Log Analytics Workspace/Microsoft Sentinel/Application Insights | 99.9% |
 | Azure DNS | 100% |
 | Azure DNS | 100% |
-| Composite SLA | 0.9986007098% |
+| Composite SLA | 0.9977018793% |
 
 The composite SLA in days, weeks, etc:  
-Daily: 23h 45m 37s  
-Weekly: 6d 22h 19m 20s  
-Monthly: 30d 3h 11m 25s  
-Quarterly: 90d 9h 34m 16s  
-Yearly: 361d 14h 17m 4s  
+Daily: 3m 18s  
+Weekly: 23m 9s  
+Monthly: 1h 40m 43s  
+Quarterly: 5h 2m 10s  
+Yearly: 20h 8m 41s
 
 ## Alternative Architectures for lower RTO and RPO
 If an RPO of 1h and a RTO of 1 day is not acceptible there are two other alternative architectures that could be implemented. As outlined by Microsoft themself: https://docs.microsoft.com/en-us/azure/architecture/reference-architectures/app-service-web-app/multi-region
@@ -166,7 +166,7 @@ RPO: < 15min
 
 The bottleneck in this architecture is the storage account failover as the MySQL RTO is - Minutes* and its RPO < 5 Minutes. In practice when RA-GRS is used one could wait with the failover for outside business hours, because users browsing the content rarely if never writes to the Azure File Share, only if an admin uploads images or edits themes write acess is needed. Thus, the storage account failover could be initiated outside of peak time, then the RPO is even less (less than 5min, the time to promote a read replica MySQL to master). Furthermore this architecture would allow the failure of up to two availability zones since then we could have 2 read replicas of the MySql server in the active region.
 
-This solution comes not only with more costs but also the complexity increases quite a bit too (failover groups, configuring auto-failover because MySQL Flexible Server HA mode fails without additional configuration). The resources deployed in both regions need to be kept in sync manually with IaC ideally (except for the MySQL database.)
+This solution comes not only with more costs but also the complexity increases quite a bit too (failover groups, configuring auto-failover because MySQL Flexible Server HA mode fails without additional configuration). The configuration of the resources deployed in both regions need to be kept in sync manually with IaC ideally (except for the MySQL database.)
 
 To optimize security the databases could be exposed with private endpoints and Virtual Network Peering between the active and passive region could be established. This is also outlined here: 
 
@@ -174,3 +174,11 @@ https://docs.microsoft.com/en-us/azure/architecture/example-scenario/sql-failove
 
 This image visualizes it quite well:
 ![image](https://user-images.githubusercontent.com/51920729/183284452-06a70bf0-3444-45a7-a0af-7bfe91fe9851.png)
+
+## Why not AKS or Azure Container Apps
+### Why not AKS
+I did not choose AKS because for an application that consist of one container it is overkill to have a container orchestration solution (even if it's a managed one). Because at the end of the day you are still responsible for Kubernetes version upgrades (even though it is much easier than with vanilla kubernetes) and the upgrade to all the components you need (Flux, Nginx Ingress Controller). And more importantly Kubernetes is one of the fastest growing Open Source Project so you always have to make sure that your YAML manifest are still compatible with new API releases. It just adds too much complexity for what it's worth. If it is really important to be able to gain experience with k8s or to deploy it to any cloud then of course it would be considerable. There is this helm chart which would greatly accelerate the time to market: https://github.com/bitnami/charts/tree/master/bitnami/ghost
+
+### Why not Azure Container Apps
+This is a very good alternative for Azure App Service because the HTTP based horizontal scaling is very attractive. Also with App Service you seem to overprovision more (because you don't want your app service VMs overloaded but if they use too little CPU you waste resources). What made me opt for Azure App Service is that it is optimized for web apps and that it integrates really well with Azure Function (they can share the App Service Plan Tier). Plus it seems like a more mature solution (the documentation is way more elaborate on the App Service side) and it offers more flexibility in regard of the deployment of the solution (zip, source code, container). Also the scaling is probably not that relevant because the content you serve with Ghost is fairly static and with sensible caching with Azure Front Door you scale more efficient anyways.
+

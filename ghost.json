@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.9.1.41621",
-      "templateHash": "5568312167615198188"
+      "templateHash": "2690723512477818240"
     }
   },
   "parameters": {
@@ -253,6 +253,26 @@
     "prodPkgURL": {
       "type": "string",
       "defaultValue": "https://github.com/GitarPlayer/azure-function-ghost/archive/refs/tags/0.0.6.zip"
+    },
+    "autoScaleMin": {
+      "type": "string",
+      "defaultValue": "3"
+    },
+    "autoScaleMax": {
+      "type": "string",
+      "defaultValue": "3"
+    },
+    "autoScaleDefault": {
+      "type": "string",
+      "defaultValue": "3"
+    },
+    "autoScaleCPUTreshold": {
+      "type": "int",
+      "defaultValue": 70
+    },
+    "scaleActionIncrease": {
+      "type": "string",
+      "defaultValue": "3"
     }
   },
   "variables": {
@@ -263,6 +283,8 @@
     "devWebAppName": "[format('{0}-{1}-web-{2}', variables('devPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "stageWebAppName": "[format('{0}-{1}-web-{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "prodWebAppName": "[format('{0}-{1}-web-{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
+    "stageAutoScaleSettingName": "[format('{0}-{1}-scale-{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
+    "prodAutoScaleSettingName": "[format('{0}-{1}-scale-{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "devFunctionName": "[format('{0}-{1}-web-function-{2}', variables('devPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "stageFunctionName": "[format('{0}-{1}-web-function-{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "prodFunctionName": "[format('{0}-{1}-web-function-{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
@@ -278,12 +300,12 @@
     "devApplicationInsightsNameFunction": "[format('{0}-{1}-ai-function-{2}', variables('devPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "stageApplicationInsightsNameFunction": "[format('{0}-{1}-ai-function-{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "prodApplicationInsightsNameFunction": "[format('{0}-{1}-ai-function-{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
-    "devKeyVaultName": "[format('{0}-{1}-kv-{2}', variables('devPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
-    "stageKeyVaultName": "[format('{0}-{1}-kv-{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
-    "prodKeyVaultName": "[format('{0}-{1}-kv-{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
-    "devStorageAccountName": "[format('{0}-{1}stor{2}', variables('devPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
-    "stageStorageAccountName": "[format('{0}-{1}stor{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
-    "prodStorageAccountName": "[format('{0}-{1}stor{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
+    "devKeyVaultName": "[format('{0}-kv-{1}', variables('devPrefix'), uniqueString(resourceGroup().id))]",
+    "stageKeyVaultName": "[format('{0}-kv-{1}', variables('stagePrefix'), uniqueString(resourceGroup().id))]",
+    "prodKeyVaultName": "[format('{0}-kv-{1}', variables('prodPrefix'), uniqueString(resourceGroup().id))]",
+    "devStorageAccountName": "[format('{0}stor{1}', variables('devPrefix'), uniqueString(resourceGroup().id))]",
+    "stageStorageAccountName": "[format('{0}stor{1}', variables('stagePrefix'), uniqueString(resourceGroup().id))]",
+    "prodStorageAccountName": "[format('{0}stor{1}', variables('prodPrefix'), uniqueString(resourceGroup().id))]",
     "devMySQLServerName": "[format('{0}-{1}-mysql-{2}', variables('devPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "stageMySQLServerName": "[format('{0}-{1}-mysql-{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "prodMySQLServerName": "[format('{0}-{1}-mysql-{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
@@ -303,9 +325,9 @@
       "name": "Standard_Microsoft"
     },
     "stageFrontDoorName": "[format('{0}-{1}-fd-{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
-    "stageWafPolicyName": "[format('{0}-{1}waf{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
     "prodFrontDoorName": "[format('{0}-{1}-fd-{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
-    "prodWafPolicyName": "[format('{0}-{1}waf{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]"
+    "stageWafPolicyName": "[format('{0}{1}waf{2}', variables('stagePrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]",
+    "prodWafPolicyName": "[format('{0}{1}waf{2}', variables('prodPrefix'), parameters('applicationNamePrefix'), uniqueString(resourceGroup().id))]"
   },
   "resources": [
     {
@@ -1662,6 +1684,9 @@
         },
         "mode": "Incremental",
         "parameters": {
+          "containerRegistryUrl": {
+            "value": "[parameters('containerRegistryUrl')]"
+          },
           "webAppName": {
             "value": "[variables('devWebAppName')]"
           },
@@ -1703,7 +1728,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "672129672970640021"
+              "templateHash": "15501703737985858407"
             }
           },
           "parameters": {
@@ -1771,6 +1796,9 @@
                 "Web app with Azure Front Door",
                 "Web app dev"
               ]
+            },
+            "containerRegistryUrl": {
+              "type": "string"
             }
           },
           "variables": {
@@ -1793,6 +1821,24 @@
                 "enabled": true,
                 "reserved": true,
                 "siteConfig": {
+                  "appSettings": [
+                    {
+                      "name": "DOCKER_ENABLE_CI",
+                      "value": "true"
+                    },
+                    {
+                      "name": "DOCKER_CUSTOM_IMAGE_NAME",
+                      "value": "[format('{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]"
+                    },
+                    {
+                      "name": "DOCKER_REGISTRY_SERVER_URL",
+                      "value": "[parameters('containerRegistryUrl')]"
+                    },
+                    {
+                      "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                      "value": "false"
+                    }
+                  ],
                   "http20Enabled": true,
                   "httpLoggingEnabled": true,
                   "minTlsVersion": "1.2",
@@ -1910,6 +1956,9 @@
         },
         "mode": "Incremental",
         "parameters": {
+          "containerRegistryUrl": {
+            "value": "[parameters('containerRegistryUrl')]"
+          },
           "webAppName": {
             "value": "[variables('stageWebAppName')]"
           },
@@ -1951,7 +2000,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "672129672970640021"
+              "templateHash": "15501703737985858407"
             }
           },
           "parameters": {
@@ -2019,6 +2068,9 @@
                 "Web app with Azure Front Door",
                 "Web app dev"
               ]
+            },
+            "containerRegistryUrl": {
+              "type": "string"
             }
           },
           "variables": {
@@ -2041,6 +2093,24 @@
                 "enabled": true,
                 "reserved": true,
                 "siteConfig": {
+                  "appSettings": [
+                    {
+                      "name": "DOCKER_ENABLE_CI",
+                      "value": "true"
+                    },
+                    {
+                      "name": "DOCKER_CUSTOM_IMAGE_NAME",
+                      "value": "[format('{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]"
+                    },
+                    {
+                      "name": "DOCKER_REGISTRY_SERVER_URL",
+                      "value": "[parameters('containerRegistryUrl')]"
+                    },
+                    {
+                      "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                      "value": "false"
+                    }
+                  ],
                   "http20Enabled": true,
                   "httpLoggingEnabled": true,
                   "minTlsVersion": "1.2",
@@ -2158,6 +2228,9 @@
         },
         "mode": "Incremental",
         "parameters": {
+          "containerRegistryUrl": {
+            "value": "[parameters('containerRegistryUrl')]"
+          },
           "webAppName": {
             "value": "[variables('prodWebAppName')]"
           },
@@ -2199,7 +2272,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "672129672970640021"
+              "templateHash": "15501703737985858407"
             }
           },
           "parameters": {
@@ -2267,6 +2340,9 @@
                 "Web app with Azure Front Door",
                 "Web app dev"
               ]
+            },
+            "containerRegistryUrl": {
+              "type": "string"
             }
           },
           "variables": {
@@ -2289,6 +2365,24 @@
                 "enabled": true,
                 "reserved": true,
                 "siteConfig": {
+                  "appSettings": [
+                    {
+                      "name": "DOCKER_ENABLE_CI",
+                      "value": "true"
+                    },
+                    {
+                      "name": "DOCKER_CUSTOM_IMAGE_NAME",
+                      "value": "[format('{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]"
+                    },
+                    {
+                      "name": "DOCKER_REGISTRY_SERVER_URL",
+                      "value": "[parameters('containerRegistryUrl')]"
+                    },
+                    {
+                      "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                      "value": "false"
+                    }
+                  ],
                   "http20Enabled": true,
                   "httpLoggingEnabled": true,
                   "minTlsVersion": "1.2",
@@ -2955,7 +3049,7 @@
             "value": "[variables('databaseName')]"
           },
           "siteUrl": {
-            "value": "devSiteUrl"
+            "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', format('{0}webAppDeploy', variables('devPrefix')))).outputs.hostName.value)]"
           }
         },
         "template": {
@@ -3358,6 +3452,9 @@
           },
           "logAnalyticsWorkspaceId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'devLogAnalyticsWorkspaceDeploy')).outputs.id.value]"
+          },
+          "zoneRedundant": {
+            "value": false
           }
         },
         "template": {
@@ -3367,7 +3464,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "10424369763500609191"
+              "templateHash": "15173421352323646520"
             }
           },
           "parameters": {
@@ -3379,9 +3476,13 @@
                 "description": "App Service Plan name"
               }
             },
+            "zoneRedundant": {
+              "type": "bool"
+            },
             "appServicePlanSku": {
               "type": "string",
               "allowedValues": [
+                "F1",
                 "B1",
                 "B2",
                 "B3",
@@ -3419,7 +3520,7 @@
               "kind": "linux",
               "properties": {
                 "reserved": true,
-                "zoneRedundant": true
+                "zoneRedundant": "[parameters('zoneRedundant')]"
               },
               "sku": {
                 "name": "[parameters('appServicePlanSku')]"
@@ -3442,62 +3543,6 @@
               "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
               ]
-            },
-            {
-              "type": "Microsoft.Insights/autoscalesettings",
-              "apiVersion": "2021-05-01-preview",
-              "name": "ghost-asp-z6uebgtm2gle6-Autoscale-780",
-              "location": "West Europe",
-              "properties": {
-                "profiles": [
-                  {
-                    "name": "Auto created scale condition",
-                    "capacity": {
-                      "minimum": "1",
-                      "maximum": "10",
-                      "default": "3"
-                    },
-                    "rules": [
-                      {
-                        "metricTrigger": {
-                          "metricName": "CpuPercentage",
-                          "metricNamespace": "microsoft.web/serverfarms",
-                          "metricResourceUri": "/subscriptions/2221643b-928c-42a5-a96d-b56de5a8d6d8/resourceGroups/withouthAnd/providers/Microsoft.Web/serverFarms/ghost-asp-z6uebgtm2gle6",
-                          "timeGrain": "PT1M",
-                          "statistic": "Average",
-                          "timeWindow": "PT5M",
-                          "timeAggregation": "Average",
-                          "operator": "GreaterThan",
-                          "threshold": "70.0",
-                          "dimensions": [
-                            {
-                              "DimensionName": "Instance",
-                              "Operator": "Equals",
-                              "Values": [
-                                "pl0ldlwk0001X5"
-                              ]
-                            }
-                          ],
-                          "dividePerInstance": false
-                        },
-                        "scaleAction": {
-                          "direction": "Increase",
-                          "type": "ChangeCount",
-                          "value": "3",
-                          "cooldown": "PT5M"
-                        }
-                      }
-                    ]
-                  }
-                ],
-                "enabled": true,
-                "name": "ghost-asp-z6uebgtm2gle6-Autoscale-780",
-                "targetResourceUri": "/subscriptions/2221643b-928c-42a5-a96d-b56de5a8d6d8/resourceGroups/withouthAnd/providers/Microsoft.Web/serverfarms/ghost-asp-z6uebgtm2gle6",
-                "notifications": [],
-                "predictiveAutoscalePolicy": {
-                  "scaleMode": "Disabled"
-                }
-              }
             }
           ],
           "outputs": {
@@ -3533,6 +3578,9 @@
           },
           "logAnalyticsWorkspaceId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'stageLogAnalyticsWorkspaceDeploy')).outputs.id.value]"
+          },
+          "zoneRedundant": {
+            "value": true
           }
         },
         "template": {
@@ -3542,7 +3590,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "10424369763500609191"
+              "templateHash": "15173421352323646520"
             }
           },
           "parameters": {
@@ -3554,9 +3602,13 @@
                 "description": "App Service Plan name"
               }
             },
+            "zoneRedundant": {
+              "type": "bool"
+            },
             "appServicePlanSku": {
               "type": "string",
               "allowedValues": [
+                "F1",
                 "B1",
                 "B2",
                 "B3",
@@ -3594,7 +3646,7 @@
               "kind": "linux",
               "properties": {
                 "reserved": true,
-                "zoneRedundant": true
+                "zoneRedundant": "[parameters('zoneRedundant')]"
               },
               "sku": {
                 "name": "[parameters('appServicePlanSku')]"
@@ -3617,62 +3669,6 @@
               "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
               ]
-            },
-            {
-              "type": "Microsoft.Insights/autoscalesettings",
-              "apiVersion": "2021-05-01-preview",
-              "name": "ghost-asp-z6uebgtm2gle6-Autoscale-780",
-              "location": "West Europe",
-              "properties": {
-                "profiles": [
-                  {
-                    "name": "Auto created scale condition",
-                    "capacity": {
-                      "minimum": "1",
-                      "maximum": "10",
-                      "default": "3"
-                    },
-                    "rules": [
-                      {
-                        "metricTrigger": {
-                          "metricName": "CpuPercentage",
-                          "metricNamespace": "microsoft.web/serverfarms",
-                          "metricResourceUri": "/subscriptions/2221643b-928c-42a5-a96d-b56de5a8d6d8/resourceGroups/withouthAnd/providers/Microsoft.Web/serverFarms/ghost-asp-z6uebgtm2gle6",
-                          "timeGrain": "PT1M",
-                          "statistic": "Average",
-                          "timeWindow": "PT5M",
-                          "timeAggregation": "Average",
-                          "operator": "GreaterThan",
-                          "threshold": "70.0",
-                          "dimensions": [
-                            {
-                              "DimensionName": "Instance",
-                              "Operator": "Equals",
-                              "Values": [
-                                "pl0ldlwk0001X5"
-                              ]
-                            }
-                          ],
-                          "dividePerInstance": false
-                        },
-                        "scaleAction": {
-                          "direction": "Increase",
-                          "type": "ChangeCount",
-                          "value": "3",
-                          "cooldown": "PT5M"
-                        }
-                      }
-                    ]
-                  }
-                ],
-                "enabled": true,
-                "name": "ghost-asp-z6uebgtm2gle6-Autoscale-780",
-                "targetResourceUri": "/subscriptions/2221643b-928c-42a5-a96d-b56de5a8d6d8/resourceGroups/withouthAnd/providers/Microsoft.Web/serverfarms/ghost-asp-z6uebgtm2gle6",
-                "notifications": [],
-                "predictiveAutoscalePolicy": {
-                  "scaleMode": "Disabled"
-                }
-              }
             }
           ],
           "outputs": {
@@ -3708,6 +3704,9 @@
           },
           "logAnalyticsWorkspaceId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', 'prodLogAnalyticsWorkspaceDeploy')).outputs.id.value]"
+          },
+          "zoneRedundant": {
+            "value": true
           }
         },
         "template": {
@@ -3717,7 +3716,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "10424369763500609191"
+              "templateHash": "15173421352323646520"
             }
           },
           "parameters": {
@@ -3729,9 +3728,13 @@
                 "description": "App Service Plan name"
               }
             },
+            "zoneRedundant": {
+              "type": "bool"
+            },
             "appServicePlanSku": {
               "type": "string",
               "allowedValues": [
+                "F1",
                 "B1",
                 "B2",
                 "B3",
@@ -3769,7 +3772,7 @@
               "kind": "linux",
               "properties": {
                 "reserved": true,
-                "zoneRedundant": true
+                "zoneRedundant": "[parameters('zoneRedundant')]"
               },
               "sku": {
                 "name": "[parameters('appServicePlanSku')]"
@@ -3792,62 +3795,6 @@
               "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
               ]
-            },
-            {
-              "type": "Microsoft.Insights/autoscalesettings",
-              "apiVersion": "2021-05-01-preview",
-              "name": "ghost-asp-z6uebgtm2gle6-Autoscale-780",
-              "location": "West Europe",
-              "properties": {
-                "profiles": [
-                  {
-                    "name": "Auto created scale condition",
-                    "capacity": {
-                      "minimum": "1",
-                      "maximum": "10",
-                      "default": "3"
-                    },
-                    "rules": [
-                      {
-                        "metricTrigger": {
-                          "metricName": "CpuPercentage",
-                          "metricNamespace": "microsoft.web/serverfarms",
-                          "metricResourceUri": "/subscriptions/2221643b-928c-42a5-a96d-b56de5a8d6d8/resourceGroups/withouthAnd/providers/Microsoft.Web/serverFarms/ghost-asp-z6uebgtm2gle6",
-                          "timeGrain": "PT1M",
-                          "statistic": "Average",
-                          "timeWindow": "PT5M",
-                          "timeAggregation": "Average",
-                          "operator": "GreaterThan",
-                          "threshold": "70.0",
-                          "dimensions": [
-                            {
-                              "DimensionName": "Instance",
-                              "Operator": "Equals",
-                              "Values": [
-                                "pl0ldlwk0001X5"
-                              ]
-                            }
-                          ],
-                          "dividePerInstance": false
-                        },
-                        "scaleAction": {
-                          "direction": "Increase",
-                          "type": "ChangeCount",
-                          "value": "3",
-                          "cooldown": "PT5M"
-                        }
-                      }
-                    ]
-                  }
-                ],
-                "enabled": true,
-                "name": "ghost-asp-z6uebgtm2gle6-Autoscale-780",
-                "targetResourceUri": "/subscriptions/2221643b-928c-42a5-a96d-b56de5a8d6d8/resourceGroups/withouthAnd/providers/Microsoft.Web/serverfarms/ghost-asp-z6uebgtm2gle6",
-                "notifications": [],
-                "predictiveAutoscalePolicy": {
-                  "scaleMode": "Disabled"
-                }
-              }
             }
           ],
           "outputs": {
@@ -3860,6 +3807,264 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'prodLogAnalyticsWorkspaceDeploy')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('{0}appServiceAutoScale', variables('stagePrefix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "autoScaleSettingName": {
+            "value": "[variables('stageAutoScaleSettingName')]"
+          },
+          "appServicePlanId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('stagePrefix')))).outputs.id.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "scaleActionIncrease": {
+            "value": "[parameters('scaleActionIncrease')]"
+          },
+          "autoScaleCPUTreshold": {
+            "value": "[parameters('autoScaleCPUTreshold')]"
+          },
+          "autoScaleDefault": {
+            "value": "[parameters('autoScaleDefault')]"
+          },
+          "autoScaleMax": {
+            "value": "[parameters('autoScaleMax')]"
+          },
+          "autoScaleMin": {
+            "value": "[parameters('autoScaleMin')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.9.1.41621",
+              "templateHash": "5027311364470639214"
+            }
+          },
+          "parameters": {
+            "appServicePlanId": {
+              "type": "string"
+            },
+            "autoScaleSettingName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Location to deploy the resources"
+              }
+            },
+            "autoScaleMin": {
+              "type": "string"
+            },
+            "autoScaleMax": {
+              "type": "string"
+            },
+            "autoScaleDefault": {
+              "type": "string"
+            },
+            "autoScaleCPUTreshold": {
+              "type": "int"
+            },
+            "scaleActionIncrease": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/autoscalesettings",
+              "apiVersion": "2015-04-01",
+              "name": "[parameters('autoScaleSettingName')]",
+              "location": "[parameters('location')]",
+              "tags": {},
+              "properties": {
+                "profiles": [
+                  {
+                    "name": "Auto created scale condition",
+                    "capacity": {
+                      "minimum": "[parameters('autoScaleMin')]",
+                      "maximum": "[parameters('autoScaleMax')]",
+                      "default": "[parameters('autoScaleDefault')]"
+                    },
+                    "rules": [
+                      {
+                        "metricTrigger": {
+                          "metricName": "CpuPercentage",
+                          "metricNamespace": "microsoft.web/serverfarms",
+                          "metricResourceUri": "[parameters('appServicePlanId')]",
+                          "timeGrain": "PT1M",
+                          "statistic": "Average",
+                          "timeWindow": "PT5M",
+                          "timeAggregation": "Average",
+                          "operator": "GreaterThan",
+                          "threshold": "[parameters('autoScaleCPUTreshold')]",
+                          "dimensions": [],
+                          "dividePerInstance": false
+                        },
+                        "scaleAction": {
+                          "direction": "Increase",
+                          "type": "ChangeCount",
+                          "value": "[parameters('scaleActionIncrease')]",
+                          "cooldown": "PT10M"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "enabled": true,
+                "name": "[parameters('autoScaleSettingName')]",
+                "targetResourceUri": "[parameters('appServicePlanId')]",
+                "notifications": []
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('stagePrefix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('{0}appServiceAutoScale', variables('prodPrefix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "autoScaleSettingName": {
+            "value": "[variables('prodAutoScaleSettingName')]"
+          },
+          "appServicePlanId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('prodPrefix')))).outputs.id.value]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "scaleActionIncrease": {
+            "value": "[parameters('scaleActionIncrease')]"
+          },
+          "autoScaleCPUTreshold": {
+            "value": "[parameters('autoScaleCPUTreshold')]"
+          },
+          "autoScaleDefault": {
+            "value": "[parameters('autoScaleDefault')]"
+          },
+          "autoScaleMax": {
+            "value": "[parameters('autoScaleMax')]"
+          },
+          "autoScaleMin": {
+            "value": "[parameters('autoScaleMin')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.9.1.41621",
+              "templateHash": "5027311364470639214"
+            }
+          },
+          "parameters": {
+            "appServicePlanId": {
+              "type": "string"
+            },
+            "autoScaleSettingName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Location to deploy the resources"
+              }
+            },
+            "autoScaleMin": {
+              "type": "string"
+            },
+            "autoScaleMax": {
+              "type": "string"
+            },
+            "autoScaleDefault": {
+              "type": "string"
+            },
+            "autoScaleCPUTreshold": {
+              "type": "int"
+            },
+            "scaleActionIncrease": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/autoscalesettings",
+              "apiVersion": "2015-04-01",
+              "name": "[parameters('autoScaleSettingName')]",
+              "location": "[parameters('location')]",
+              "tags": {},
+              "properties": {
+                "profiles": [
+                  {
+                    "name": "Auto created scale condition",
+                    "capacity": {
+                      "minimum": "[parameters('autoScaleMin')]",
+                      "maximum": "[parameters('autoScaleMax')]",
+                      "default": "[parameters('autoScaleDefault')]"
+                    },
+                    "rules": [
+                      {
+                        "metricTrigger": {
+                          "metricName": "CpuPercentage",
+                          "metricNamespace": "microsoft.web/serverfarms",
+                          "metricResourceUri": "[parameters('appServicePlanId')]",
+                          "timeGrain": "PT1M",
+                          "statistic": "Average",
+                          "timeWindow": "PT5M",
+                          "timeAggregation": "Average",
+                          "operator": "GreaterThan",
+                          "threshold": "[parameters('autoScaleCPUTreshold')]",
+                          "dimensions": [],
+                          "dividePerInstance": false
+                        },
+                        "scaleAction": {
+                          "direction": "Increase",
+                          "type": "ChangeCount",
+                          "value": "[parameters('scaleActionIncrease')]",
+                          "cooldown": "PT10M"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "enabled": true,
+                "name": "[parameters('autoScaleSettingName')]",
+                "targetResourceUri": "[parameters('appServicePlanId')]",
+                "notifications": []
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('prodPrefix')))]"
       ]
     },
     {
@@ -4342,7 +4547,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "16053392450951354502"
+              "templateHash": "15982550503419158515"
             }
           },
           "parameters": {
@@ -4354,8 +4559,11 @@
             "mySQLServerSku": {
               "type": "string",
               "allowedValues": [
-                "Standard_B16ms",
-                "Standard_D2ds_v4"
+                "Standard_B1s",
+                "Standard_B1ms",
+                "Standard_B2s",
+                "Standard_D2ds_v4",
+                "Standard_E8ds_v4"
               ]
             },
             "administratorLogin": {
@@ -4530,7 +4738,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "16053392450951354502"
+              "templateHash": "15982550503419158515"
             }
           },
           "parameters": {
@@ -4542,8 +4750,11 @@
             "mySQLServerSku": {
               "type": "string",
               "allowedValues": [
-                "Standard_B16ms",
-                "Standard_D2ds_v4"
+                "Standard_B1s",
+                "Standard_B1ms",
+                "Standard_B2s",
+                "Standard_D2ds_v4",
+                "Standard_E8ds_v4"
               ]
             },
             "administratorLogin": {
@@ -4718,7 +4929,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "16053392450951354502"
+              "templateHash": "15982550503419158515"
             }
           },
           "parameters": {
@@ -4730,8 +4941,11 @@
             "mySQLServerSku": {
               "type": "string",
               "allowedValues": [
-                "Standard_B16ms",
-                "Standard_D2ds_v4"
+                "Standard_B1s",
+                "Standard_B1ms",
+                "Standard_B2s",
+                "Standard_D2ds_v4",
+                "Standard_E8ds_v4"
               ]
             },
             "administratorLogin": {
