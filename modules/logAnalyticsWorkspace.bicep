@@ -51,3 +51,5 @@ resource sentinelSolution 'Microsoft.OperationsManagement/solutions@2015-11-01-p
 }
 
 output id string = logAnalyticsWorkspace.id
+
+
