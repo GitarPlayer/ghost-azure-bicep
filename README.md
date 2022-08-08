@@ -4,7 +4,7 @@ A one-click [Ghost](https://ghost.org/)  deployment on [Azure web app for Contai
 
 ## Deploy
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FGitarPlayer%2Fazure.ghost-web-app-for-containers%2Fmaster%2Fghost.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FGitarPlayer%2Fghost-azure-bicep%2Fmaster%2Fghost.json)
 
 ## Acceptance Criterias
 The Acceptance Criterias will be abbreviated with AC1 to AC6.
