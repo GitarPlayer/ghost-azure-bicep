@@ -18,7 +18,7 @@ param containerRegistryUrl string
 
 param warmUpSlotName string = ''
 
-resource existingWebApp 'Microsoft.Web/sites@2020-09-01' existing = {
+resource existingWebApp 'Microsoft.Web/sites@2021-01-15' existing = {
   name: webAppName
 }
 
@@ -27,8 +27,8 @@ resource existingWebApp 'Microsoft.Web/sites@2020-09-01' existing = {
 
 
 resource WarmUpSlot 'Microsoft.Web/sites/slots@2021-03-01' = {
-  name: warmUpSlotName
   parent: existingWebApp
+  name: warmUpSlotName
   kind: 'app,linux,container'
   location: location
   properties: {

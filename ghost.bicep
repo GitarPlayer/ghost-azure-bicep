@@ -8,7 +8,7 @@ param applicationNamePrefix string = 'ghost'
 param devAppServicePlanSku string = 'B1'
 
 @description('Stage/Prod App Service Plan pricing tier')
-param appServicePlanSku string = 'B1'
+param appServicePlanSku string = 'P3v2'
 
 @description('Log Analytics workspace pricing tier')
 param devLogAnalyticsWorkspaceSku string = 'PerGB2018'
@@ -20,17 +20,17 @@ param logAnalyticsWorkspaceSku string = 'PerGB2018'
 param devStorageAccountSku string = 'Standard_LRS'
 
 @description('Stage/Prod Storage account pricing tier')
-param storageAccountSku string = 'Standard_LRS'
+param storageAccountSku string = 'Standard_RAGRS'
 
 
 @description('Location to deploy the resources')
 param location string = resourceGroup().location
 
 @description('Dev MySQL server SKU for dev')
-param devMySQLServerSku string = 'mySQLServerSku'
+param devMySQLServerSku string = 'Standard_D2ds_v4'
 
 @description('Stage/Prod MySQL server SKU')
-param mySQLServerSku string = 'mySQLServerSku'
+param mySQLServerSku string = 'Standard_D2ds_v4'
 
 
 @description('Dev MySQL server password')
@@ -52,14 +52,14 @@ param prodDatabasePassword string
   'Enabled'
 ])
 @description('Stage/Prod Whether or not geo redundant backup is enabled.')
-param geoRedundantBackup string
+param geoRedundantBackup string = 'Enabled'
 
 @allowed([
   'Disabled'
   'Enabled'
 ])
 @description('Dev Whether or not geo redundant backup is enabled for dev')
-param devGeoRedundantBackup string
+param devGeoRedundantBackup string = 'Disabled'
 
 
 @allowed([
@@ -68,7 +68,7 @@ param devGeoRedundantBackup string
   'ZoneRedundant'
 ])
 @description('Stage/Prod High availability mode for a server.')
-param highAvailabilityMode string
+param highAvailabilityMode string = 'ZoneRedundant'
 
 
 @allowed([
@@ -77,7 +77,7 @@ param highAvailabilityMode string
   'ZoneRedundant'
 ])
 @description('Dev High availability mode for a server for dev')
-param devHighAvailabilityMode string
+param devHighAvailabilityMode string ='Disabled'
 
 
 @description('Ghost container full image name and tag')
@@ -144,7 +144,7 @@ param devRetentionInDays int = 30
   'v5.0'
 ])
 @description('Stage/Prod The ghost API version used for the azure function')
-param ghostApiVersion string
+param ghostApiVersion string = 'v4.0'
 
 
 @allowed([
@@ -152,7 +152,7 @@ param ghostApiVersion string
   'v5.0'
 ])
 @description('Dev The ghost API version used for the azure function for dev')
-param devGhostApiVersion string
+param devGhostApiVersion string = 'v4.0'
 
 param devPkgURL string = 'https://github.com/GitarPlayer/azure-function-ghost/archive/refs/tags/0.0.6.zip'
 param stagePkgURL string = 'https://github.com/GitarPlayer/azure-function-ghost/archive/refs/tags/0.0.6.zip'
@@ -355,7 +355,7 @@ module devWebApp './modules/webApp.bicep' = {
     location: location
     logAnalyticsWorkspaceId: devLogAnalyticsWorkspace.outputs.id
     deploymentConfiguration: devDeploymentConfiguration
-    useWarmUpSlots: true
+    contDeployment: 'true'
   }
 }
 
@@ -374,7 +374,7 @@ module stageWebApp './modules/webApp.bicep' = {
     location: location
     logAnalyticsWorkspaceId: stageLogAnalyticsWorkspace.outputs.id
     deploymentConfiguration: stageDeploymentConfiguration
-    useWarmUpSlots: true
+    contDeployment: 'true'
   }
 }
 
@@ -393,22 +393,10 @@ module prodWebApp './modules/webApp.bicep' = {
     location: location
     logAnalyticsWorkspaceId: prodLogAnalyticsWorkspace.outputs.id
     deploymentConfiguration: prodDeploymentConfiguration
-    useWarmUpSlots: true
+    contDeployment: 'false'
   }
 }
 
-module prodWarmUpSlot './modules/deploymentSlot.bicep' = {
-  name: '${prodPrefix}WebAppDeploy'
-  params: {
-    containerRegistryUrl: containerRegistryUrl
-    webAppName: prodWebAppName
-    appServicePlanId: prodAppServicePlan.outputs.id
-    ghostContainerImage: ghostContainerName
-    ghostContainerTag: prodGhostContainerTag
-    location: location
-    warmUpSlotName: warmUpSlotName
-  }
-}
 
 // devFunction
 module devFunction './modules/function.bicep' = {
@@ -453,6 +441,20 @@ module prodfunction './modules/function.bicep' = {
     ghostURL: '${http_prefix}${prodFrontDoor.outputs.frontendEndpointHostName}'
     storageAccountAccessKey: prodStorageAccount.outputs.accessKey
     storageAccountName: prodStorageAccount.outputs.name
+  }
+}
+
+
+module prodWarmUpSlot './modules/deploymentSlot.bicep' = {
+  name: '${prodPrefix}deploymentSlot'
+  params: {
+    containerRegistryUrl: containerRegistryUrl
+    webAppName: prodWebApp.outputs.name
+    appServicePlanId: prodAppServicePlan.outputs.id
+    ghostContainerImage: ghostContainerName
+    ghostContainerTag: prodGhostContainerTag
+    location: location
+    warmUpSlotName: warmUpSlotName
   }
 }
 

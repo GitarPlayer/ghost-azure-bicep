@@ -201,3 +201,13 @@ use ghost;
 UPDATE migrations_lock set locked=0 where lock_key='km01';
 quit;
 ```
+
+## Add the GHOST ADMIN API KEY to the delete all posts function
+1. Go to your frontdoor resource and open the URL that points to your ghost backend. You cannot go directly to the app service URL because in prod and stage you will get 403 because of WAF.
+
+2. Go to $FRONT_DOOR_URL/ghost 
+3. Create an admin account
+4. Skip Adding Users
+5. Create a custom integration
+6. Copy the API KEY
+7. Configure it for the apps setting of the App Service of that site

@@ -43,9 +43,9 @@ param containerRegistryUrl string
 
 
 var containerImageReference = 'DOCKER|${ghostContainerImage}:${ghostContainerTag}'
-param useWarmUpSlots bool
+param contDeployment string
 // don't enable Continious Deployment femptyor the Prod site, there is a warmup slot
-var dockerEnableCI =  useWarmUpSlots ? 'true' : 'false'
+
 
 
 resource webApp 'Microsoft.Web/sites@2021-01-15' = {
@@ -65,7 +65,7 @@ resource webApp 'Microsoft.Web/sites@2021-01-15' = {
       appSettings: [
         {
           name: 'DOCKER_ENABLE_CI'
-          value: dockerEnableCI
+          value: contDeployment
         }
         {
           name: 'DOCKER_CUSTOM_IMAGE_NAME'
