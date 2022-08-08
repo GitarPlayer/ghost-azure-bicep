@@ -219,7 +219,7 @@ If you are unlucky and somehow the App Service restarts your container while the
 Unhandled rejection MigrationsAreLockedError: Migration lock was never released or currently a migration is running.
 ```
 
-You need to manually remove the lock by logging into the SQL server and running a command:
+You need to manually remove the lock by logging into the SQL server and running a command. The easiest way is to go to your affected db in the Azure Portal and click on the connect button (this will execute all of the commands above with the right hostname, username and ssl cert:
 ```bash
 # just use Azure Cloud Shell for simplicity
 sudo apt-get install mysql-client
@@ -238,7 +238,6 @@ Here it's https://prod-ghost-fd-kb4d25tc47hig.azurefd.net
 Here it's https://prod-ghost-fd-kb4d25tc47hig.azurefd.net/ghost/
 4. Create an admin account
 ![image](https://user-images.githubusercontent.com/51920729/183389200-0b962fa6-dd71-4c5e-bfa9-5a6609a80b37.png)
-![image](https://user-images.githubusercontent.com/51920729/183389368-1a306971-5590-4b2b-a42e-94e2b5aa6fe1.png)
 5. Skip Adding Users
 ![image](https://user-images.githubusercontent.com/51920729/183389439-4b43ddf2-c3af-4236-8e31-219ef37baff4.png)
 6. Create a custom integration
