@@ -196,7 +196,7 @@ The bottleneck in this architecture is the storage account failover as the MySQL
 
 This solution comes not only with more costs but also the complexity increases quite a bit too (failover groups, configuring auto-failover because MySQL Flexible Server HA mode fails without additional configuration). The configuration of the resources deployed in both regions need to be kept in sync manually with IaC ideally (except for the MySQL database.)
 
-To optimize security the databases could be exposed withTO private endpoints and Virtual Network Peering between the active and passive region could be established. This is also outlined here: 
+To optimize security the databases could be exposed with private endpoints and Virtual Network Peering between the active and passive region could be established. This is also outlined here: 
 
 https://docs.microsoft.com/en-us/azure/architecture/example-scenario/sql-failover/app-service-private-sql-multi-region
 
