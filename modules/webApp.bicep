@@ -41,7 +41,12 @@ param containerMountPath string
 param deploymentConfiguration string
 param containerRegistryUrl string
 
+
 var containerImageReference = 'DOCKER|${ghostContainerImage}:${ghostContainerTag}'
+param useWarmUpSlots bool
+// don't enable Continious Deployment femptyor the Prod site, there is a warmup slot
+var dockerEnableCI =  useWarmUpSlots ? 'true' : 'false'
+
 
 resource webApp 'Microsoft.Web/sites@2021-01-15' = {
   name: webAppName
@@ -59,8 +64,8 @@ resource webApp 'Microsoft.Web/sites@2021-01-15' = {
     siteConfig: {
       appSettings: [
         {
-        name: 'DOCKER_ENABLE_CI'
-        value: 'true'
+          name: 'DOCKER_ENABLE_CI'
+          value: dockerEnableCI
         }
         {
           name: 'DOCKER_CUSTOM_IMAGE_NAME'
@@ -159,9 +164,13 @@ resource webAppDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
 
 
 
+
+
+
 output name string = webApp.name
 output hostName string = webApp.properties.hostNames[0]
 output principalId string = webApp.identity.principalId
+
 
 
 

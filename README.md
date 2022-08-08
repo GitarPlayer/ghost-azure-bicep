@@ -182,3 +182,22 @@ I did not choose AKS because for an application that consist of one container it
 ### Why not Azure Container Apps
 This is a very good alternative for Azure App Service because the HTTP based horizontal scaling is very attractive. Also with App Service you seem to overprovision more (because you don't want your app service VMs overloaded but if they use too little CPU you waste resources). What made me opt for Azure App Service is that it is optimized for web apps and that it integrates really well with Azure Function (they can share the App Service Plan Tier). Plus it seems like a more mature solution (the documentation is way more elaborate on the App Service side) and it offers more flexibility in regard of the deployment of the solution (zip, source code, container). Also the scaling is probably not that relevant because the content you serve with Ghost is fairly static and with sensible caching with Azure Front Door you scale more efficient anyways.
 
+## Day 2 operation, adding the Ghost Admin API Key to the Azure Function Application Settings
+
+
+## Known issues
+If you are unlucky and somehow the App Service restarts your container during the initial database setup it is configured with a lock and the container keeps retarting because it can never initialize the database because of the existing lock. The logs show something like this:
+```bash
+Unhandled rejection MigrationsAreLockedError: Migration lock was never released or currently a migration is running.
+```
+
+You need to manually remove the lock by login into the SQL server and running a command:
+```bash
+# just use Azure Cloud Shell for simplicity
+sudo apt-get install mysql-client
+wget --no-check-certificate https://dl.cacerts.digicert.com/DigiCertGlobalRootCA.crt.pem
+mysql -h prod-ghost-mysql-exghjb3mkk3wc.mysql.database.azure.com -u ghost --ssl-crl=DigiCertGlobalRootCA.crt.pem -p
+use ghost;
+UPDATE migrations_lock set locked=0 where lock_key='km01';
+quit;
+```

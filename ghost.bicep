@@ -102,6 +102,8 @@ param stageGhostContainerTag string = 'stage'
 param prodGhostContainerTag string = 'prod'
 
 
+
+
 @description('Container registry where the image is hosted')
 param containerRegistryUrl string = 'https://index.docker.io/v1'
 
@@ -162,6 +164,7 @@ param autoScaleMax string = '3'
 param autoScaleDefault string = '3'
 param autoScaleCPUTreshold int = 70
 param scaleActionIncrease string = '3'
+
 // vars
 
 
@@ -201,6 +204,9 @@ var prodStorageAccountName = '${prodPrefix}stor${uniqueString(resourceGroup().id
 var devMySQLServerName = '${devPrefix}-${applicationNamePrefix}-mysql-${uniqueString(resourceGroup().id)}'
 var stageMySQLServerName = '${stagePrefix}-${applicationNamePrefix}-mysql-${uniqueString(resourceGroup().id)}'
 var prodMySQLServerName = '${prodPrefix}-${applicationNamePrefix}-mysql-${uniqueString(resourceGroup().id)}'
+var warmUpSlotName = '${prodPrefix}-${applicationNamePrefix}-warmup-${uniqueString(resourceGroup().id)}'
+
+
 
 // other vars
 var databaseLogin = 'ghost'
@@ -349,6 +355,7 @@ module devWebApp './modules/webApp.bicep' = {
     location: location
     logAnalyticsWorkspaceId: devLogAnalyticsWorkspace.outputs.id
     deploymentConfiguration: devDeploymentConfiguration
+    useWarmUpSlots: true
   }
 }
 
@@ -367,6 +374,7 @@ module stageWebApp './modules/webApp.bicep' = {
     location: location
     logAnalyticsWorkspaceId: stageLogAnalyticsWorkspace.outputs.id
     deploymentConfiguration: stageDeploymentConfiguration
+    useWarmUpSlots: true
   }
 }
 
@@ -385,6 +393,20 @@ module prodWebApp './modules/webApp.bicep' = {
     location: location
     logAnalyticsWorkspaceId: prodLogAnalyticsWorkspace.outputs.id
     deploymentConfiguration: prodDeploymentConfiguration
+    useWarmUpSlots: true
+  }
+}
+
+module prodWarmUpSlot './modules/deploymentSlot.bicep' = {
+  name: '${prodPrefix}WebAppDeploy'
+  params: {
+    containerRegistryUrl: containerRegistryUrl
+    webAppName: prodWebAppName
+    appServicePlanId: prodAppServicePlan.outputs.id
+    ghostContainerImage: ghostContainerName
+    ghostContainerTag: prodGhostContainerTag
+    location: location
+    warmUpSlotName: warmUpSlotName
   }
 }
 

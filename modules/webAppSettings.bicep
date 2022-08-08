@@ -57,5 +57,3 @@ resource webAppSettings 'Microsoft.Web/sites/config@2021-01-15' = {
     database__connection__ssl_minVersion: 'TLSv1.2'
   }
 }
-
-
