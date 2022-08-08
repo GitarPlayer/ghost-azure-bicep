@@ -3,8 +3,36 @@
 A one-click [Ghost](https://ghost.org/)  deployment on [Azure web app for Containers](https://azure.microsoft.com/en-us/services/app-service/containers/). The architecture is described in much greated detail below.
 
 ## Deploy
+Originally I planned that the whole solution would be deployable with one click. But since this is a private repo the button below will not work.  
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FGitarPlayer%2Fghost-azure-bicep%2Fmaster%2Fghost.json)
+
+So I tested the deployment in two ways:
+
+### Deploy a custom template in the Azure Portal
+1. Copy the raw content of the ghost.json file
+2. Click Build your own template in the editor
+3. Paste the raw content of the ghost.json file
+4. It is recommended to create a new resource group and to not change the region (I tested it with the default value of East US)
+5. Set the db passwords
+6. Click Review + Create
+7. Done
+
+### Deploy using VS Code and the Bicep Extension
+This is explained better than I ever could here: https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/deploy-vscode  
+
+As above it is recommend to create a new resource group in the tested region (East US). It will prompt you for the dev,stage and prod database root passwords.  
+Then in the VS Code OUTPUT you get the URL to the deployment:  
+```bash
+11:32:53 AM: Starting deployment of /home/tux/Documents/ghost-azure-bicep/ghost.bicep
+11:32:54 AM: Scope specified in ghost.bicep -> resourceGroup
+11:33:06 AM: Created resource group -> contDeployment
+11:33:08 AM: Parameter file used in deployment -> /home/tux/Documents/ghost-azure-bicep/ghost.parameters.json
+11:33:21 AM: Deployment started for /home/tux/Documents/ghost-azure-bicep/ghost.bicep.
+11:33:21 AM: View deployment in portal: https://portal.azure.com/#blade/HubsExtension/DeploymentDetailsBlade/overview/id/%2Fsubscriptions%2F556328bb-9377-48cf-9f87-9243b4bf8ce9%2FresourceGroups%2FcontDeployment%2Fproviders%2FMicrosoft.Resources%2Fdeployments%2Fbicep_deployment_20220808093316.
+
+```
+
 
 ## Acceptance Criterias
 The Acceptance Criterias will be abbreviated with AC1 to AC6.
@@ -227,3 +255,5 @@ Here it's https://prod-ghost-fd-kb4d25tc47hig.azurefd.net
 ![image](https://user-images.githubusercontent.com/51920729/183390832-0837987d-f463-4feb-955e-7c3af64f92ed.png)
 
 
+#### Improvements
+Upload the ghost ADMIN API KEY to Azure Key Vault and configure the function to fetch it from there. On quick inspection I did not find a way to create an admin account upon installation in an automated fashion but I did not look into that a lot. This should be done before the page goes live. Because if a random hacker tries the /ghost/ endpoint before I get do it, then he would have full admin righst on a page exposed to the internet. Also it would be nice to be able to create custom integrations API keys with no clicking.
