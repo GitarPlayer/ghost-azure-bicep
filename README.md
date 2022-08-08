@@ -182,10 +182,10 @@ I did not choose AKS because for an application that consist of one container it
 ### Why not Azure Container Apps
 This is a very good alternative for Azure App Service because the HTTP based horizontal scaling is very attractive. Also with App Service you seem to overprovision more (because you don't want your app service VMs overloaded but if they use too little CPU you waste resources). What made me opt for Azure App Service is that it is optimized for web apps and that it integrates really well with Azure Function (they can share the App Service Plan Tier). Plus it seems like a more mature solution (the documentation is way more elaborate on the App Service side) and it offers more flexibility in regard of the deployment of the solution (zip, source code, container). Also the scaling is probably not that relevant because the content you serve with Ghost is fairly static and with sensible caching with Azure Front Door you scale more efficient anyways.
 
-## Day 2 operation, adding the Ghost Admin API Key to the Azure Function Application Settings
+## Day 2 operations
 
 
-## Known issues
+### Known issues
 If you are unlucky and somehow the App Service restarts your container during the initial database setup it is configured with a lock and the container keeps retarting because it can never initialize the database because of the existing lock. The logs show something like this:
 ```bash
 Unhandled rejection MigrationsAreLockedError: Migration lock was never released or currently a migration is running.
@@ -202,12 +202,28 @@ UPDATE migrations_lock set locked=0 where lock_key='km01';
 quit;
 ```
 
-## Add the GHOST ADMIN API KEY to the delete all posts function
+### Add the GHOST ADMIN API KEY to the delete all posts function
 1. Go to your frontdoor resource and open the URL that points to your ghost backend. You cannot go directly to the app service URL because in prod and stage you will get 403 because of WAF.
+![image](https://user-images.githubusercontent.com/51920729/183388912-84a8779a-d5b2-40c5-907f-13a341bf2bf3.png)
+Here it's https://prod-ghost-fd-kb4d25tc47hig.azurefd.net
+2. Go to $FRONT_DOOR_URL/ghost/ 
+Here it's https://prod-ghost-fd-kb4d25tc47hig.azurefd.net/ghost/
+4. Create an admin account
+![image](https://user-images.githubusercontent.com/51920729/183389200-0b962fa6-dd71-4c5e-bfa9-5a6609a80b37.png)
+![image](https://user-images.githubusercontent.com/51920729/183389368-1a306971-5590-4b2b-a42e-94e2b5aa6fe1.png)
+5. Skip Adding Users
+![image](https://user-images.githubusercontent.com/51920729/183389439-4b43ddf2-c3af-4236-8e31-219ef37baff4.png)
+6. Create a custom integration
+![image](https://user-images.githubusercontent.com/51920729/183389726-a5af78ea-fa93-4ec5-be7f-8f970fb199f7.png)
+![image](https://user-images.githubusercontent.com/51920729/183389843-b52257cd-7969-456f-b475-70bb60f2bd65.png)
+7. Copy the API KEY
+8. ![image](https://user-images.githubusercontent.com/51920729/183390020-d1f16b8f-53fa-43cf-91b9-96529c23e8c2.png)
+9. Configure it for the apps setting of the App Service of that site
+![image](https://user-images.githubusercontent.com/51920729/183390319-964af984-6d47-47dd-80c0-0c15094a3bde.png)
+10. Test it from Azure Function 
+![image](https://user-images.githubusercontent.com/51920729/183390573-01f41596-f6da-4c5c-9ee2-036d1a47bc9c.png)
+11. You should no longer see the default posts in your $FRONT_DOOR_URl. Here
+Here it's https://prod-ghost-fd-kb4d25tc47hig.azurefd.net
+![image](https://user-images.githubusercontent.com/51920729/183390832-0837987d-f463-4feb-955e-7c3af64f92ed.png)
 
-2. Go to $FRONT_DOOR_URL/ghost 
-3. Create an admin account
-4. Skip Adding Users
-5. Create a custom integration
-6. Copy the API KEY
-7. Configure it for the apps setting of the App Service of that site
+
