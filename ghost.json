@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.9.1.41621",
-      "templateHash": "5650613284564297334"
+      "templateHash": "14699681045487567553"
     }
   },
   "parameters": {
@@ -25,7 +25,7 @@
     },
     "appServicePlanSku": {
       "type": "string",
-      "defaultValue": "B1",
+      "defaultValue": "P3v2",
       "metadata": {
         "description": "Stage/Prod App Service Plan pricing tier"
       }
@@ -53,7 +53,7 @@
     },
     "storageAccountSku": {
       "type": "string",
-      "defaultValue": "Standard_LRS",
+      "defaultValue": "Standard_RAGRS",
       "metadata": {
         "description": "Stage/Prod Storage account pricing tier"
       }
@@ -67,14 +67,14 @@
     },
     "devMySQLServerSku": {
       "type": "string",
-      "defaultValue": "mySQLServerSku",
+      "defaultValue": "Standard_D2ds_v4",
       "metadata": {
         "description": "Dev MySQL server SKU for dev"
       }
     },
     "mySQLServerSku": {
       "type": "string",
-      "defaultValue": "mySQLServerSku",
+      "defaultValue": "Standard_D2ds_v4",
       "metadata": {
         "description": "Stage/Prod MySQL server SKU"
       }
@@ -99,6 +99,7 @@
     },
     "geoRedundantBackup": {
       "type": "string",
+      "defaultValue": "Enabled",
       "metadata": {
         "description": "Stage/Prod Whether or not geo redundant backup is enabled."
       },
@@ -109,6 +110,7 @@
     },
     "devGeoRedundantBackup": {
       "type": "string",
+      "defaultValue": "Disabled",
       "metadata": {
         "description": "Dev Whether or not geo redundant backup is enabled for dev"
       },
@@ -119,6 +121,7 @@
     },
     "highAvailabilityMode": {
       "type": "string",
+      "defaultValue": "ZoneRedundant",
       "metadata": {
         "description": "Stage/Prod High availability mode for a server."
       },
@@ -130,6 +133,7 @@
     },
     "devHighAvailabilityMode": {
       "type": "string",
+      "defaultValue": "Disabled",
       "metadata": {
         "description": "Dev High availability mode for a server for dev"
       },
@@ -224,6 +228,7 @@
     },
     "ghostApiVersion": {
       "type": "string",
+      "defaultValue": "v4.0",
       "metadata": {
         "description": "Stage/Prod The ghost API version used for the azure function"
       },
@@ -234,6 +239,7 @@
     },
     "devGhostApiVersion": {
       "type": "string",
+      "defaultValue": "v4.0",
       "metadata": {
         "description": "Dev The ghost API version used for the azure function for dev"
       },
@@ -1721,8 +1727,8 @@
           "deploymentConfiguration": {
             "value": "[parameters('devDeploymentConfiguration')]"
           },
-          "useWarmUpSlots": {
-            "value": true
+          "contDeployment": {
+            "value": "true"
           }
         },
         "template": {
@@ -1732,7 +1738,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "9365629361570681362"
+              "templateHash": "18164616159949568211"
             }
           },
           "parameters": {
@@ -1804,13 +1810,12 @@
             "containerRegistryUrl": {
               "type": "string"
             },
-            "useWarmUpSlots": {
-              "type": "bool"
+            "contDeployment": {
+              "type": "string"
             }
           },
           "variables": {
-            "containerImageReference": "[format('DOCKER|{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]",
-            "dockerEnableCI": "[if(parameters('useWarmUpSlots'), 'true', 'false')]"
+            "containerImageReference": "[format('DOCKER|{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]"
           },
           "resources": [
             {
@@ -1832,7 +1837,7 @@
                   "appSettings": [
                     {
                       "name": "DOCKER_ENABLE_CI",
-                      "value": "[variables('dockerEnableCI')]"
+                      "value": "[parameters('contDeployment')]"
                     },
                     {
                       "name": "DOCKER_CUSTOM_IMAGE_NAME",
@@ -2000,8 +2005,8 @@
           "deploymentConfiguration": {
             "value": "[parameters('stageDeploymentConfiguration')]"
           },
-          "useWarmUpSlots": {
-            "value": true
+          "contDeployment": {
+            "value": "true"
           }
         },
         "template": {
@@ -2011,7 +2016,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "9365629361570681362"
+              "templateHash": "18164616159949568211"
             }
           },
           "parameters": {
@@ -2083,13 +2088,12 @@
             "containerRegistryUrl": {
               "type": "string"
             },
-            "useWarmUpSlots": {
-              "type": "bool"
+            "contDeployment": {
+              "type": "string"
             }
           },
           "variables": {
-            "containerImageReference": "[format('DOCKER|{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]",
-            "dockerEnableCI": "[if(parameters('useWarmUpSlots'), 'true', 'false')]"
+            "containerImageReference": "[format('DOCKER|{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]"
           },
           "resources": [
             {
@@ -2111,7 +2115,7 @@
                   "appSettings": [
                     {
                       "name": "DOCKER_ENABLE_CI",
-                      "value": "[variables('dockerEnableCI')]"
+                      "value": "[parameters('contDeployment')]"
                     },
                     {
                       "name": "DOCKER_CUSTOM_IMAGE_NAME",
@@ -2279,8 +2283,8 @@
           "deploymentConfiguration": {
             "value": "[parameters('prodDeploymentConfiguration')]"
           },
-          "useWarmUpSlots": {
-            "value": true
+          "contDeployment": {
+            "value": "false"
           }
         },
         "template": {
@@ -2290,7 +2294,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "9365629361570681362"
+              "templateHash": "18164616159949568211"
             }
           },
           "parameters": {
@@ -2362,13 +2366,12 @@
             "containerRegistryUrl": {
               "type": "string"
             },
-            "useWarmUpSlots": {
-              "type": "bool"
+            "contDeployment": {
+              "type": "string"
             }
           },
           "variables": {
-            "containerImageReference": "[format('DOCKER|{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]",
-            "dockerEnableCI": "[if(parameters('useWarmUpSlots'), 'true', 'false')]"
+            "containerImageReference": "[format('DOCKER|{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]"
           },
           "resources": [
             {
@@ -2390,7 +2393,7 @@
                   "appSettings": [
                     {
                       "name": "DOCKER_ENABLE_CI",
-                      "value": "[variables('dockerEnableCI')]"
+                      "value": "[parameters('contDeployment')]"
                     },
                     {
                       "name": "DOCKER_CUSTOM_IMAGE_NAME",
@@ -2510,128 +2513,6 @@
         "[resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('prodPrefix')))]",
         "[resourceId('Microsoft.Resources/deployments', 'prodLogAnalyticsWorkspaceDeploy')]",
         "[resourceId('Microsoft.Resources/deployments', format('{0}storageAccountDeploy', variables('prodPrefix')))]"
-      ]
-    },
-    {
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2020-10-01",
-      "name": "[format('{0}WebAppDeploy', variables('prodPrefix'))]",
-      "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
-        "mode": "Incremental",
-        "parameters": {
-          "containerRegistryUrl": {
-            "value": "[parameters('containerRegistryUrl')]"
-          },
-          "webAppName": {
-            "value": "[variables('prodWebAppName')]"
-          },
-          "appServicePlanId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('prodPrefix')))).outputs.id.value]"
-          },
-          "ghostContainerImage": {
-            "value": "[parameters('ghostContainerName')]"
-          },
-          "ghostContainerTag": {
-            "value": "[parameters('prodGhostContainerTag')]"
-          },
-          "location": {
-            "value": "[parameters('location')]"
-          },
-          "warmUpSlotName": {
-            "value": "[variables('warmUpSlotName')]"
-          }
-        },
-        "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.9.1.41621",
-              "templateHash": "14633212451933827791"
-            }
-          },
-          "parameters": {
-            "webAppName": {
-              "type": "string"
-            },
-            "location": {
-              "type": "string",
-              "defaultValue": "[resourceGroup().location]",
-              "metadata": {
-                "description": "Location to deploy the resources"
-              }
-            },
-            "appServicePlanId": {
-              "type": "string",
-              "metadata": {
-                "description": "App Service Plan id to host the app"
-              }
-            },
-            "ghostContainerImage": {
-              "type": "string",
-              "metadata": {
-                "description": "Ghost container full image name"
-              }
-            },
-            "ghostContainerTag": {
-              "type": "string",
-              "metadata": {
-                "description": "Ghost container tag"
-              }
-            },
-            "containerRegistryUrl": {
-              "type": "string"
-            },
-            "warmUpSlotName": {
-              "type": "string",
-              "defaultValue": ""
-            }
-          },
-          "resources": [
-            {
-              "type": "Microsoft.Web/sites/slots",
-              "apiVersion": "2021-03-01",
-              "name": "[format('{0}/{1}', parameters('webAppName'), parameters('warmUpSlotName'))]",
-              "kind": "app,linux,container",
-              "location": "[parameters('location')]",
-              "properties": {
-                "enabled": true,
-                "siteConfig": {
-                  "appSettings": [
-                    {
-                      "name": "DOCKER_ENABLE_CI",
-                      "value": "true"
-                    },
-                    {
-                      "name": "DOCKER_CUSTOM_IMAGE_NAME",
-                      "value": "[format('{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]"
-                    },
-                    {
-                      "name": "DOCKER_REGISTRY_SERVER_URL",
-                      "value": "[parameters('containerRegistryUrl')]"
-                    },
-                    {
-                      "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
-                      "value": "false"
-                    }
-                  ]
-                },
-                "serverFarmId": "[parameters('appServicePlanId')]",
-                "reserved": true,
-                "httpsOnly": true,
-                "storageAccountRequired": false,
-                "keyVaultReferenceIdentity": "SystemAssigned"
-              }
-            }
-          ]
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('prodPrefix')))]"
       ]
     },
     {
@@ -3153,6 +3034,129 @@
         "[resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('prodPrefix')))]",
         "[resourceId('Microsoft.Resources/deployments', 'prodFrontDoorDeploy')]",
         "[resourceId('Microsoft.Resources/deployments', format('{0}storageAccountDeploy', variables('prodPrefix')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('{0}deploymentSlot', variables('prodPrefix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "containerRegistryUrl": {
+            "value": "[parameters('containerRegistryUrl')]"
+          },
+          "webAppName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}WebAppDeploy', variables('prodPrefix')))).outputs.name.value]"
+          },
+          "appServicePlanId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('prodPrefix')))).outputs.id.value]"
+          },
+          "ghostContainerImage": {
+            "value": "[parameters('ghostContainerName')]"
+          },
+          "ghostContainerTag": {
+            "value": "[parameters('prodGhostContainerTag')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "warmUpSlotName": {
+            "value": "[variables('warmUpSlotName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.9.1.41621",
+              "templateHash": "14633212451933827791"
+            }
+          },
+          "parameters": {
+            "webAppName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Location to deploy the resources"
+              }
+            },
+            "appServicePlanId": {
+              "type": "string",
+              "metadata": {
+                "description": "App Service Plan id to host the app"
+              }
+            },
+            "ghostContainerImage": {
+              "type": "string",
+              "metadata": {
+                "description": "Ghost container full image name"
+              }
+            },
+            "ghostContainerTag": {
+              "type": "string",
+              "metadata": {
+                "description": "Ghost container tag"
+              }
+            },
+            "containerRegistryUrl": {
+              "type": "string"
+            },
+            "warmUpSlotName": {
+              "type": "string",
+              "defaultValue": ""
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/sites/slots",
+              "apiVersion": "2021-03-01",
+              "name": "[format('{0}/{1}', parameters('webAppName'), parameters('warmUpSlotName'))]",
+              "kind": "app,linux,container",
+              "location": "[parameters('location')]",
+              "properties": {
+                "enabled": true,
+                "siteConfig": {
+                  "appSettings": [
+                    {
+                      "name": "DOCKER_ENABLE_CI",
+                      "value": "true"
+                    },
+                    {
+                      "name": "DOCKER_CUSTOM_IMAGE_NAME",
+                      "value": "[format('{0}:{1}', parameters('ghostContainerImage'), parameters('ghostContainerTag'))]"
+                    },
+                    {
+                      "name": "DOCKER_REGISTRY_SERVER_URL",
+                      "value": "[parameters('containerRegistryUrl')]"
+                    },
+                    {
+                      "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                      "value": "false"
+                    }
+                  ]
+                },
+                "serverFarmId": "[parameters('appServicePlanId')]",
+                "reserved": true,
+                "httpsOnly": true,
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('{0}appServicePlanDeploy', variables('prodPrefix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('{0}WebAppDeploy', variables('prodPrefix')))]"
       ]
     },
     {
